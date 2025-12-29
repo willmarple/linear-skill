@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "team": "YOUR_TEAM_KEY",
+  "defaultProject": null,
+  "allowedTeams": [],
+  "allowedProjects": [],
+  "labels": {},
+  "workflows": {},
+  "preferences": {
+    "outputFormat": "json",
+    "cacheEnabled": true,
+    "cacheTtlMinutes": 60,
+    "sessionMemoryEnabled": true,
+    "maxTrackedTickets": 20,
+    "maxRecentActions": 50,
+    "maxSessionSummaries": 3
+  }
+}

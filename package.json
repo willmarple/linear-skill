@@ -1,0 +1,42 @@
+{
+  "name": "linear-skill",
+  "version": "0.1.0",
+  "description": "Claude Code skill for managing Linear issues, projects, and cycles",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "linear-skill": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "linear",
+    "claude-code",
+    "skill",
+    "project-management",
+    "issue-tracker"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@linear/sdk": "^27.0.0",
+    "dotenv": "^16.3.1",
+    "yargs": "^17.7.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/yargs": "^17.0.32",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0"
+  }
+}

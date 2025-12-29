@@ -1,0 +1,30 @@
+# Environment and secrets
+.env
+
+# Runtime configuration (contains project-specific settings)
+config.json
+
+# Cache and session data
+cache.json
+session-memory.json
+
+# Node
+node_modules/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
