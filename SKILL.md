@@ -324,8 +324,47 @@ npx linear-skill update TEAM-123 --state "To Do"
 5. Run `npm install && npm run build`
 6. Test: `npx linear-skill teams`
 
+## Skill Initialization
+
+If this skill has not been configured for the current project, help the user set it up:
+
+### Check if initialized
+
+```bash
+npx linear-skill config
+```
+
+If `team` is "YOUR_TEAM_KEY" or missing, initialization is needed.
+
+### Initialization steps
+
+1. **Verify `.env`** has `LINEAR_API_KEY` set
+
+2. **Discover workspace:**
+   ```bash
+   npx linear-skill teams      # Get team key
+   npx linear-skill projects   # Get project IDs and names
+   npx linear-skill states --team TEAM_KEY  # Check workflow states
+   ```
+
+3. **Ask the user:**
+   - Which team to use as default?
+   - How to categorize their projects (support, feature phases)?
+   - What does "High priority" mean for their current work?
+   - What is their current project phase?
+
+4. **Update `config.json`** with discovered values
+
+5. **Check for missing workflow states** (Client Review, Dev Done, Ready to Test) and guide user to create them in Linear UI
+
+6. **Refresh cache:**
+   ```bash
+   npx linear-skill cache-refresh
+   ```
+
 ## Documentation
 
+- [README.md](./README.md) - Developer setup guide
 - [REFERENCE.md](./skill/REFERENCE.md) - Full command reference
 - [CONFIG.md](./skill/CONFIG.md) - Configuration guide
 - [SESSION.md](./skill/SESSION.md) - Session memory details
