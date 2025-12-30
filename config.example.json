@@ -4,8 +4,40 @@
   "defaultProject": null,
   "allowedTeams": [],
   "allowedProjects": [],
-  "labels": {},
-  "workflows": {},
+  "projects": {
+    "support": {
+      "id": "project-uuid-here",
+      "name": "Support & Maintenance",
+      "description": "Bug fixes and production support"
+    },
+    "feature": {
+      "id": "project-uuid-here",
+      "name": "Feature Development",
+      "description": "New feature work"
+    }
+  },
+  "priorityContext": {
+    "high": "Required for current release",
+    "medium": "Standard sprint work",
+    "currentPhase": "Describe your current project phase"
+  },
+  "labels": {
+    "bug": "label-uuid-here",
+    "feature": "label-uuid-here",
+    "improvement": "label-uuid-here"
+  },
+  "workflows": {
+    "bugfix": {
+      "defaultState": "Client Review",
+      "defaultPriority": 2,
+      "defaultLabels": ["bug"]
+    },
+    "feature": {
+      "defaultState": "Client Review",
+      "defaultPriority": 3,
+      "defaultLabels": ["feature"]
+    }
+  },
   "preferences": {
     "outputFormat": "json",
     "cacheEnabled": true,
