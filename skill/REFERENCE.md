@@ -105,7 +105,22 @@ Get issue details.
 ```bash
 npx linear-skill issue <identifier>
 npx linear-skill issue ENG-123
+npx linear-skill issue ENG-123 --comments
 ```
+
+**Options:**
+- `--comments` - Include comments in the output (default: false)
+
+### comments
+
+Get comments for an issue.
+
+```bash
+npx linear-skill comments <identifier>
+npx linear-skill comments ENG-123
+```
+
+Returns all comments on the issue, sorted by creation date (oldest first). Useful for reviewing client feedback without fetching full issue details.
 
 ### search
 

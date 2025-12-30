@@ -7,6 +7,8 @@ import {
   CycleOutput,
   TeamOutput,
   UserOutput,
+  CommentOutput,
+  IssueWithCommentsOutput,
   CachedTeam,
   CachedUser,
   CachedWorkflowState,
@@ -317,6 +319,52 @@ export class LinearClient {
       return mapped[0] || null;
     } catch {
       return null;
+    }
+  }
+
+  async getIssueWithComments(idOrIdentifier: string): Promise<IssueWithCommentsOutput | null> {
+    try {
+      const issue = await this.client.issue(idOrIdentifier);
+      const mapped = await this.mapIssuesToOutput([issue]);
+      if (!mapped[0]) return null;
+
+      const comments = await this.getComments(issue.id);
+      return {
+        ...mapped[0],
+        comments,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async getComments(issueId: string): Promise<CommentOutput[]> {
+    try {
+      const issue = await this.client.issue(issueId);
+      const comments = await issue.comments();
+
+      const result: CommentOutput[] = [];
+      for (const comment of comments.nodes) {
+        const user = await comment.user;
+        result.push({
+          id: comment.id,
+          body: comment.body,
+          createdAt: comment.createdAt instanceof Date
+            ? comment.createdAt.toISOString()
+            : String(comment.createdAt),
+          updatedAt: comment.updatedAt instanceof Date
+            ? comment.updatedAt.toISOString()
+            : String(comment.updatedAt),
+          user: user ? { id: user.id, name: user.name, email: user.email } : undefined,
+        });
+      }
+
+      // Sort by createdAt ascending (oldest first)
+      result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+      return result;
+    } catch {
+      return [];
     }
   }
 

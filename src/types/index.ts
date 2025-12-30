@@ -207,3 +207,15 @@ export interface UserOutput {
   displayName: string;
   active: boolean;
 }
+
+export interface CommentOutput {
+  id: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  user?: { id: string; name: string; email: string };
+}
+
+export interface IssueWithCommentsOutput extends IssueOutput {
+  comments: CommentOutput[];
+}

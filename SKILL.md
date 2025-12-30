@@ -7,6 +7,165 @@ description: Manage Linear issues, projects, and cycles. Maintains session memor
 
 Manage your Linear workspace from the command line with persistent session memory.
 
+---
+
+## CTR Project Conventions
+
+This section documents the agreed-upon conventions for the CTR project Linear workspace.
+
+### Priority Definitions
+
+| Priority | Value | Meaning | Usage |
+|----------|-------|---------|-------|
+| **Urgent** | 1 | Hot fix to production | Blocking work on production, drop everything |
+| **High** | 2 | More important than v2 work | Required for current staging → production release |
+| **Medium** | 3 | On par with v2 development | Can be worked alongside v2 features |
+| **Low** | 4 | Nice-to-have, deferred | Revisit when ahead of schedule |
+| None | 0 | Not yet prioritized | Needs review |
+
+**Key behaviors:**
+- **Urgent**: Developer patches immediately; client notified
+- **High**: Must be completed before production deployment
+- **Medium**: Scheduled alongside feature work
+- **Low**: Kept in backlog, won't delay deadlines
+
+### Status Workflow
+
+```
+┌─────────────────┐     ┌─────────────┐
+│  CLIENT REVIEW  │     │   TRIAGE    │
+│  (Client Inbox) │     │ (Dev Inbox) │
+└────────┬────────┘     └──────┬──────┘
+         │                     │
+         └──────────┬──────────┘
+                    ▼
+              ┌───────────┐
+              │   TO DO   │
+              └─────┬─────┘
+                    ▼
+              ┌───────────┐
+              │IN PROGRESS│
+              └─────┬─────┘
+                    ▼
+              ┌───────────┐
+              │  DEV DONE │
+              └─────┬─────┘
+                    ▼
+            ┌─────────────┐
+            │READY TO TEST│
+            └──────┬──────┘
+                   ▼
+              ┌──────────┐
+              │   DONE   │
+              └──────────┘
+```
+
+| Status | Owner | Meaning |
+|--------|-------|---------|
+| **Client Review** | Client | Developer-created tickets awaiting client approval of priority/details |
+| **Triage** | Developer | Client-reported bugs/issues awaiting developer review |
+| **To Do** | Both | Approved, prioritized, ready to be worked on |
+| **In Progress** | Developer | Actively being developed |
+| **Dev Done** | Developer | Code complete (PR merged), not yet deployed to staging |
+| **Ready to Test** | Client | Deployed to staging, awaiting client testing |
+| **Done** | Both | Client tested and approved |
+| **Canceled** | Both | Work determined to be unnecessary |
+
+**Transition responsibilities:**
+- `→ Client Review`: Developer creates ticket from planning/meetings
+- `Client Review → To Do`: Client approves after reviewing
+- `→ Triage`: Client reports bug directly
+- `Triage → To Do`: Developer reviews, sets priority
+- `To Do → In Progress`: Developer picks up work
+- `In Progress → Dev Done`: Code complete
+- `Dev Done → Ready to Test`: Deployed to staging
+- `Ready to Test → Done`: Client tests successfully
+
+**Inbox goal:** Both `Client Review` and `Triage` should trend toward empty.
+
+### Projects
+
+| Project | Purpose |
+|---------|---------|
+| **V1 Refinements and Support** | Bug fixes, polish, production support |
+| **P1** | Phase 1 v2 development |
+| **P2 PO System** | Phase 2 - Parts and PO system |
+
+**Assignment rules:**
+- Production bugs → V1 Refinements and Support
+- New v2 features → P1 or P2 based on scope
+- Urgent hot fixes → May skip project assignment (priority is enough)
+
+### Labels
+
+| Label | Usage |
+|-------|-------|
+| `bug` | Something broken that needs fixing |
+| `feature` | New functionality |
+| `improvement` | Enhancement to existing functionality |
+
+### Communication
+
+- **Linear is the primary channel** for project work (not Slack)
+- Use **comments** within tickets for discussion
+- **@ mentions** notify via inbox
+- Check inbox regularly for messages
+- Save Slack for urgent real-time needs only
+
+### Creating Issues from Transcripts
+
+When generating issues from meeting transcripts:
+
+1. **Set status to `Client Review`** (not Triage) - Client needs to approve
+2. **Include in description:**
+   - Context from discussion
+   - Location in app (if applicable)
+   - Steps to reproduce (for bugs)
+   - Acceptance criteria (for features)
+3. **Set priority** based on meeting discussion
+4. **Assign to project** based on type (v1 polish vs v2 feature)
+5. **Add appropriate label** (bug/feature/improvement)
+
+### Reading Comments & Client Feedback
+
+Comments contain important client feedback, clarifications, and discussion history. Use them strategically to stay context-efficient.
+
+**When to use `--comments` flag or `comments` command:**
+- Planning implementation for specific tickets (1-5 tickets)
+- Reviewing client feedback before starting work
+- Checking for clarifications or scope changes
+- Preparing spec documents that need client context
+
+**When NOT to fetch comments:**
+- Broad searches across many tickets (`issues --team WIL`)
+- Filtering/triaging tickets by status or priority
+- Quick status checks or updates
+- Bulk operations
+
+**Commands:**
+```bash
+# Lightweight - just comments for quick review
+npx linear-skill comments WIL-77
+
+# Full context - issue details + comments for implementation planning
+npx linear-skill issue WIL-77 --comments
+```
+
+**Workflow tip:** When moving tickets from `To Do` to `In Progress`, fetch comments first to ensure you have the latest client context before writing implementation specs.
+
+### Release Workflow
+
+**For staging → production releases:**
+
+1. All `High` priority items must be `Done`
+2. `Medium` items are optional for current release
+3. `Low` items are explicitly deferred
+4. Once all required items are `Done`, deploy to production
+
+**Semantic versioning** may be adopted for tracking releases.
+
+---
+
 ## Starting a Session
 
 **Always load context first** to see what you were working on:
@@ -36,18 +195,18 @@ npx linear-skill context
 # List your assigned issues
 npx linear-skill issues --assignee me
 
-# Create an issue
-npx linear-skill create "Fix login bug" --team ENG
+# Create an issue (for transcript-generated tickets, use Client Review state)
+npx linear-skill create "Fix login bug" --team CTR --state "Client Review"
 
 # Update an issue
-npx linear-skill update ENG-123 --state "In Progress"
+npx linear-skill update CTR-123 --state "In Progress"
 
 # Quick actions
-npx linear-skill start ENG-123    # Move to "In Progress"
-npx linear-skill done ENG-123     # Move to "Done"
+npx linear-skill start CTR-123    # Move to "In Progress"
+npx linear-skill done CTR-123     # Move to "Done"
 
 # Mark tickets as current focus
-npx linear-skill focus ENG-123 ENG-456
+npx linear-skill focus CTR-123 CTR-456
 
 # Save session before ending
 npx linear-skill session-save "Completed auth work, PR ready for review"
@@ -67,24 +226,24 @@ The skill remembers your recent work across conversations:
 ### Read Commands
 - `teams` - List all teams
 - `users` - List users (use `--me` for current user)
-- `states --team ENG` - List workflow states
+- `states --team CTR` - List workflow states
 - `projects` - List projects
-- `cycles --team ENG` - List cycles (`--active` for current)
+- `cycles --team CTR` - List cycles (`--active` for current)
 - `issues` - List issues with filters
-- `issue ENG-123` - Get issue details
+- `issue CTR-123` - Get issue details
 - `search "query"` - Search issues
 
 ### Write Commands
-- `create "title" --team ENG` - Create issue
-- `update ENG-123 --state "Done"` - Update issue
-- `assign ENG-123 me` - Assign issue
-- `comment ENG-123 "comment text"` - Add comment
-- `start ENG-123` - Move to "In Progress"
-- `done ENG-123` - Move to "Done"
+- `create "title" --team CTR` - Create issue
+- `update CTR-123 --state "Done"` - Update issue
+- `assign CTR-123 me` - Assign issue
+- `comment CTR-123 "comment text"` - Add comment
+- `start CTR-123` - Move to "In Progress"
+- `done CTR-123` - Move to "Done"
 
 ### Session Commands
 - `context` - Load session context (use at start)
-- `focus ENG-123 ENG-456` - Set focus tickets
+- `focus CTR-123 CTR-456` - Set focus tickets
 - `notes "reminder text"` - Set session notes
 - `session-save "summary"` - Save session summary
 - `sessions` - View session history
@@ -100,10 +259,12 @@ The skill remembers your recent work across conversations:
 
 ```bash
 # Issues by team
-npx linear-skill issues --team ENG
+npx linear-skill issues --team CTR
 
-# Issues by state
-npx linear-skill issues --state "In Progress"
+# Issues by state (use exact state names from workflow)
+npx linear-skill issues --state "Client Review"
+npx linear-skill issues --state "Triage"
+npx linear-skill issues --state "Ready to Test"
 
 # My issues
 npx linear-skill issues --assignee me
@@ -115,7 +276,25 @@ npx linear-skill issues --project <project-id>
 npx linear-skill issues --cycle <cycle-id>
 
 # Combine filters
-npx linear-skill issues --team ENG --assignee me --state "In Progress"
+npx linear-skill issues --team CTR --assignee me --state "In Progress"
+
+# Find issues needing client review
+npx linear-skill issues --state "Client Review"
+
+# Find issues ready for client testing
+npx linear-skill issues --state "Ready to Test"
+```
+
+## Bulk Operations for Transcript Processing
+
+When creating multiple issues from a meeting transcript:
+
+```bash
+# Create each ticket with Client Review status
+npx linear-skill create "Ticket title" --team CTR --state "Client Review" --priority 2 -d "Description here"
+
+# After client reviews, they move approved tickets to To Do
+npx linear-skill update CTR-123 --state "To Do"
 ```
 
 ## Setup
@@ -123,7 +302,7 @@ npx linear-skill issues --team ENG --assignee me --state "In Progress"
 1. Copy `.env.example` to `.env`
 2. Add your Linear API key: `LINEAR_API_KEY=lin_api_xxxx`
 3. Copy `config.example.json` to `config.json`
-4. Set your default team in `config.json`
+4. Set your default team in `config.json` to `CTR`
 5. Run `npm install && npm run build`
 6. Test: `npx linear-skill teams`
 

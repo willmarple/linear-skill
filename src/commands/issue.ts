@@ -8,17 +8,29 @@ export function registerIssueCommand(cli: Argv): void {
     'issue <identifier>',
     'Get issue details by identifier (e.g., ENG-123) or ID',
     (yargs) =>
-      yargs.positional('identifier', {
-        type: 'string',
-        description: 'Issue identifier or ID',
-        demandOption: true,
-      }),
+      yargs
+        .positional('identifier', {
+          type: 'string',
+          description: 'Issue identifier or ID',
+          demandOption: true,
+        })
+        .option('comments', {
+          type: 'boolean',
+          description: 'Include comments in the output',
+          default: false,
+        }),
     async (argv) => {
       try {
         const client = createLinearClient();
         const session = getSessionManager();
+        const includeComments = argv.comments as boolean;
 
-        const issue = await client.getIssue(argv.identifier as string);
+        let issue;
+        if (includeComments) {
+          issue = await client.getIssueWithComments(argv.identifier as string);
+        } else {
+          issue = await client.getIssue(argv.identifier as string);
+        }
 
         if (!issue) {
           output(
@@ -34,13 +46,13 @@ export function registerIssueCommand(cli: Argv): void {
           state: issue.state.name,
           priority: issue.priority,
           interactionType: 'viewed',
-          summary: `Viewed issue details`,
+          summary: includeComments ? 'Viewed issue details with comments' : 'Viewed issue details',
         });
 
         session.logAction({
           action: 'view',
           ticket: issue.identifier,
-          changes: {},
+          changes: { includeComments },
         });
 
         output(success('issue', { issue }));
