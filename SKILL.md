@@ -169,6 +169,47 @@ npx linear-skill issue TEAM-123 --comments
 
 **Workflow tip:** When moving tickets from `To Do` to `In Progress`, fetch comments first to ensure you have the latest client context before writing implementation specs.
 
+### Viewing Screenshots & Attachments
+
+Issues often include screenshots showing bugs, UI states, or expected behavior. The skill returns **signed URLs** that are publicly accessible for 1 hour.
+
+**Output fields when using `--comments`:**
+- `inlineImages` - Images embedded in description or comments (extracted from markdown `![alt](url)`)
+- `attachments` - Files attached to the issue
+
+**Workflow to view screenshots:**
+
+1. **Fetch the issue with comments** to get signed URLs:
+   ```bash
+   npx linear-skill issue TEAM-123 --comments
+   ```
+
+2. **Download images** to the skill's cache directory:
+   ```bash
+   # Create cache directory if needed
+   mkdir -p ~/.linear-skill/images
+
+   # Download each image (use the signed URL from output)
+   curl -s -o ~/.linear-skill/images/screenshot-1.png "<signed-url>"
+   ```
+
+3. **View the image** using the Read tool:
+   ```bash
+   # Claude can view the downloaded image
+   Read ~/.linear-skill/images/screenshot-1.png
+   ```
+
+4. **Clean up** after reviewing (images are not auto-deleted):
+   ```bash
+   rm ~/.linear-skill/images/*.png
+   ```
+
+**Important notes:**
+- Signed URLs expire after 1 hour - re-fetch the issue if URLs have expired
+- macOS does NOT auto-clean `/tmp`, so use `~/.linear-skill/images/` for predictable cleanup
+- Always review screenshots before implementing bug fixes to understand the exact issue
+- Multiple screenshots may show different states (before/after, different views, etc.)
+
 ### Release Workflow
 
 **For staging → production releases:**

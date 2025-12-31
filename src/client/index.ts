@@ -9,6 +9,8 @@ import {
   UserOutput,
   CommentOutput,
   IssueWithCommentsOutput,
+  AttachmentOutput,
+  InlineImageOutput,
   CachedTeam,
   CachedUser,
   CachedWorkflowState,
@@ -24,6 +26,11 @@ export class LinearClient {
     const config = getConfigManager();
     this.client = new LinearSDK({
       apiKey: config.getApiKey(),
+      // Enable signed URLs for attachments (valid for 1 hour)
+      // This header causes Linear to return temporary public URLs for file attachments
+      headers: {
+        'public-file-urls-expire-in': '3600',
+      },
     });
   }
 
@@ -359,13 +366,78 @@ export class LinearClient {
       if (!mapped[0]) return null;
 
       const comments = await this.getComments(issue.id);
+      const attachments = await this.getAttachments(issue.id);
+
+      // Extract inline images from description and comments
+      const inlineImages: InlineImageOutput[] = [];
+
+      // From description
+      if (mapped[0].description) {
+        const descImages = this.extractInlineImages(mapped[0].description, 'description');
+        inlineImages.push(...descImages);
+      }
+
+      // From comments
+      for (const comment of comments) {
+        const commentImages = this.extractInlineImages(comment.body, 'comment', comment.id);
+        inlineImages.push(...commentImages);
+      }
+
       return {
         ...mapped[0],
         comments,
+        attachments: attachments.length > 0 ? attachments : undefined,
+        inlineImages: inlineImages.length > 0 ? inlineImages : undefined,
       };
     } catch {
       return null;
     }
+  }
+
+  async getAttachments(issueId: string): Promise<AttachmentOutput[]> {
+    try {
+      const issue = await this.client.issue(issueId);
+      const attachments = await issue.attachments();
+
+      return attachments.nodes.map((a) => ({
+        id: a.id,
+        title: a.title,
+        subtitle: a.subtitle || undefined,
+        url: a.url,
+        sourceType: a.sourceType || undefined,
+        createdAt: a.createdAt instanceof Date
+          ? a.createdAt.toISOString()
+          : String(a.createdAt),
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Extract inline image URLs from markdown content.
+   * Matches patterns like: ![alt text](url)
+   */
+  extractInlineImages(
+    markdown: string,
+    source: 'description' | 'comment',
+    commentId?: string
+  ): InlineImageOutput[] {
+    const images: InlineImageOutput[] = [];
+    // Match markdown image syntax: ![alt](url)
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    let match;
+
+    while ((match = imageRegex.exec(markdown)) !== null) {
+      images.push({
+        alt: match[1] || 'image',
+        url: match[2],
+        source,
+        commentId: source === 'comment' ? commentId : undefined,
+      });
+    }
+
+    return images;
   }
 
   async getComments(issueId: string): Promise<CommentOutput[]> {

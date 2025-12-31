@@ -216,6 +216,24 @@ export interface CommentOutput {
   user?: { id: string; name: string; email: string };
 }
 
+export interface AttachmentOutput {
+  id: string;
+  title: string;
+  subtitle?: string;
+  url: string;
+  sourceType?: string;
+  createdAt: string;
+}
+
+export interface InlineImageOutput {
+  alt: string;
+  url: string;
+  source: 'description' | 'comment';
+  commentId?: string;
+}
+
 export interface IssueWithCommentsOutput extends IssueOutput {
   comments: CommentOutput[];
+  attachments?: AttachmentOutput[];
+  inlineImages?: InlineImageOutput[];
 }
