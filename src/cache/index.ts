@@ -122,8 +122,13 @@ export class CacheManager {
     return this.cache.data.projects.find((p) => p.id === id);
   }
 
-  getLabels(): CachedLabel[] {
-    return this.cache.data.labels;
+  getLabels(teamId?: string): CachedLabel[] {
+    if (!teamId) {
+      return this.cache.data.labels;
+    }
+    return this.cache.data.labels.filter(
+      (l) => l.teamId === teamId || !l.teamId
+    );
   }
 
   getLabelByName(name: string, teamId?: string): CachedLabel | undefined {

@@ -291,18 +291,48 @@ export class LinearClient {
   async getIssues(options: {
     teamId?: string;
     projectId?: string;
+    projectIds?: string[];
     cycleId?: string;
     assigneeId?: string;
     stateId?: string;
+    stateIds?: string[];
+    stateNames?: string[];
+    priorities?: number[];
+    labelNames?: string[];
     limit?: number;
   }): Promise<IssueOutput[]> {
     const filter: Record<string, unknown> = {};
 
     if (options.teamId) filter.team = { id: { eq: options.teamId } };
-    if (options.projectId) filter.project = { id: { eq: options.projectId } };
+
+    // Project filtering - single or multiple
+    if (options.projectIds && options.projectIds.length > 0) {
+      filter.project = { id: { in: options.projectIds } };
+    } else if (options.projectId) {
+      filter.project = { id: { eq: options.projectId } };
+    }
+
     if (options.cycleId) filter.cycle = { id: { eq: options.cycleId } };
     if (options.assigneeId) filter.assignee = { id: { eq: options.assigneeId } };
-    if (options.stateId) filter.state = { id: { eq: options.stateId } };
+
+    // State filtering - by ID(s) or name(s)
+    if (options.stateIds && options.stateIds.length > 0) {
+      filter.state = { id: { in: options.stateIds } };
+    } else if (options.stateNames && options.stateNames.length > 0) {
+      filter.state = { name: { in: options.stateNames } };
+    } else if (options.stateId) {
+      filter.state = { id: { eq: options.stateId } };
+    }
+
+    // Priority filtering - supports multiple priorities with 'in' operator
+    if (options.priorities && options.priorities.length > 0) {
+      filter.priority = { in: options.priorities };
+    }
+
+    // Label filtering - matches issues that have ANY of the specified labels
+    if (options.labelNames && options.labelNames.length > 0) {
+      filter.labels = { some: { name: { in: options.labelNames } } };
+    }
 
     const issues = await this.client.issues({
       filter: Object.keys(filter).length > 0 ? filter : undefined,
@@ -621,6 +651,33 @@ export class LinearClient {
 
     const state = this.cache.getStateByName(teamId, stateName);
     return state?.id || null;
+  }
+
+  // Resolve multiple state names to IDs for a team
+  async resolveStateIds(teamId: string, stateNames: string[]): Promise<string[]> {
+    await this.ensureCacheReady();
+
+    const ids: string[] = [];
+    for (const name of stateNames) {
+      const state = this.cache.getStateByName(teamId, name);
+      if (state) {
+        ids.push(state.id);
+      }
+    }
+    return ids;
+  }
+
+  // Resolve label name to ID (for a team or globally)
+  async resolveLabelId(labelName: string, teamId?: string): Promise<string | null> {
+    await this.ensureCacheReady();
+
+    const label = this.cache.getLabelByName(labelName, teamId);
+    return label?.id || null;
+  }
+
+  // Get all available labels (for listing)
+  getLabels(teamId?: string): CachedLabel[] {
+    return this.cache.getLabels(teamId);
   }
 }
 

@@ -273,34 +273,64 @@ The skill remembers your recent work across conversations:
 - `cache-refresh` - Refresh teams/users/states cache
 - `cache-status` - Show cache status
 
-## Common Filters
+## Issue Filtering
+
+The `issues` command supports flexible filtering with multiple values for most parameters.
+
+### Available Filter Options
+
+| Option | Alias | Description | Multiple Values |
+|--------|-------|-------------|-----------------|
+| `--team` | `-t` | Filter by team key or ID | No |
+| `--project` | `-p` | Filter by project ID(s) | Yes (comma-separated) |
+| `--cycle` | `-c` | Filter by cycle ID | No |
+| `--assignee` | `-a` | Filter by assignee (ID, email, or "me") | No |
+| `--state` | `-s` | Filter by state name(s) | Yes (repeat flag or comma) |
+| `--priority` | `-P` | Filter by priority (1-4 or names) | Yes (repeat flag or comma) |
+| `--label` | `-L` | Filter by label name(s) | Yes (repeat flag) |
+| `--limit` | `-l` | Maximum issues to return (default: 50) | No |
+
+### Priority Values
+
+| Value | Name | Meaning |
+|-------|------|---------|
+| 1 | urgent | Hot fix to production |
+| 2 | high | Critical for current release |
+| 3 | medium | Standard priority |
+| 4 | low | Nice-to-have |
+| 0 | none | Not yet prioritized |
+
+### Filtering Examples
 
 ```bash
-# Issues by team
+# Basic filters
 npx linear-skill issues --team TEAM
-
-# Issues by state (use exact state names from workflow)
-npx linear-skill issues --state "Client Review"
-npx linear-skill issues --state "Triage"
-npx linear-skill issues --state "Ready to Test"
-
-# My issues
 npx linear-skill issues --assignee me
+npx linear-skill issues --state "To Do"
 
-# Issues in a project
-npx linear-skill issues --project <project-id>
+# Priority filtering (CRITICAL for hotfix workflow)
+npx linear-skill issues --team TEAM --priority 1              # Urgent only
+npx linear-skill issues --team TEAM --priority urgent         # Same as above
+npx linear-skill issues --team TEAM --priority 1,2            # Urgent and High
+npx linear-skill issues --team TEAM -P urgent -P high         # Same as above
 
-# Issues in current cycle
-npx linear-skill issues --cycle <cycle-id>
+# Multiple states
+npx linear-skill issues --team TEAM -s "To Do" -s "In Progress"
+npx linear-skill issues --state "Triage,Client Review"        # Comma syntax
 
-# Combine filters
-npx linear-skill issues --team TEAM --assignee me --state "In Progress"
+# Label filtering (matches issues with ANY of the labels)
+npx linear-skill issues --team TEAM --label "Bug"
+npx linear-skill issues --team TEAM -L "Bug" -L "Feature"
 
-# Find issues needing client review
-npx linear-skill issues --state "Client Review"
+# Combined filters
+npx linear-skill issues --team TEAM --priority 1 --state "To Do"
+npx linear-skill issues --team TEAM --assignee me --priority 1,2 --limit 20
 
-# Find issues ready for client testing
-npx linear-skill issues --state "Ready to Test"
+# Find all inbox items (Triage + Client Review)
+npx linear-skill issues --team TEAM -s "Triage" -s "Client Review"
+
+# Production hotfix query
+npx linear-skill issues --team TEAM --priority urgent --state "To Do"
 ```
 
 ## Bulk Operations for Transcript Processing
