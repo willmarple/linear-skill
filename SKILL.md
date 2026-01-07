@@ -142,6 +142,31 @@ When generating issues from meeting transcripts:
 4. **Assign to project** based on type
 5. **Add appropriate label** (bug/feature/improvement)
 
+### Checking Your Inbox
+
+Your Linear inbox contains notifications about issues you're assigned to, mentioned in, or have subscribed to. This is how client feedback and updates reach you.
+
+**Commands:**
+```bash
+# View all notifications (most recent first)
+npx linear-skill inbox
+
+# View only unread notifications
+npx linear-skill inbox --unread
+
+# Limit to specific count
+npx linear-skill inbox --unread --limit 10
+```
+
+**Notification types include:**
+- `issueAssignedToYou` - You were assigned to an issue
+- `issueNewComment` - Someone commented on an issue you follow
+- `issueMention` - You were @mentioned in a comment
+- `issueStatusChanged` - Status changed on an issue you follow
+- And many more...
+
+**Workflow tip:** Check your inbox at the start of each session to see client feedback and updates since your last session. This is especially useful for catching comments on recently completed work.
+
 ### Reading Comments & Client Feedback
 
 Comments contain important client feedback, clarifications, and discussion history. Use them strategically to stay context-efficient.
@@ -291,6 +316,8 @@ The skill remembers your recent work across conversations:
 - `issue TEAM-123 --comments` - Get issue details with comments
 - `comments TEAM-123` - Get comments for an issue
 - `search "query"` - Search issues
+- `inbox` - List notifications from your inbox
+- `inbox --unread` - List only unread notifications
 
 ### Write Commands
 - `create "title" --team TEAM` - Create issue

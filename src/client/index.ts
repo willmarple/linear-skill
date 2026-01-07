@@ -11,6 +11,7 @@ import {
   IssueWithCommentsOutput,
   AttachmentOutput,
   InlineImageOutput,
+  NotificationOutput,
   CachedTeam,
   CachedUser,
   CachedWorkflowState,
@@ -287,6 +288,100 @@ export class LinearClient {
         teamId: team?.id,
       });
     }
+
+    return result;
+  }
+
+  // ============================================================================
+  // Notifications/Inbox
+  // ============================================================================
+
+  async getNotifications(options?: {
+    unreadOnly?: boolean;
+    limit?: number;
+  }): Promise<NotificationOutput[]> {
+    // Use the SDK's notifications() method (root query, not on viewer)
+    const notifications = await this.client.notifications({
+      first: options?.limit || 50,
+    });
+
+    const result: NotificationOutput[] = [];
+
+    for (const n of notifications.nodes) {
+      // Skip read notifications if unreadOnly is true
+      if (options?.unreadOnly && n.readAt) {
+        continue;
+      }
+
+      // Resolve related entities
+      const actor = await n.actor;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const notificationAny = n as any;
+
+      // Try to resolve issue and comment - not all notification types have these
+      let issue = null;
+      let comment = null;
+      try {
+        if ('issue' in notificationAny) {
+          issue = await notificationAny.issue;
+        }
+      } catch {
+        // Notification type doesn't have issue
+      }
+      try {
+        if ('comment' in notificationAny) {
+          comment = await notificationAny.comment;
+        }
+      } catch {
+        // Notification type doesn't have comment
+      }
+
+      let issueData: NotificationOutput['issue'];
+      if (issue) {
+        const state = await issue.state;
+        const team = await issue.team;
+        issueData = {
+          id: issue.id,
+          identifier: issue.identifier,
+          title: issue.title,
+          state: state ? { id: state.id, name: state.name } : undefined,
+          team: team ? { id: team.id, key: team.key, name: team.name } : undefined,
+        };
+      }
+
+      let commentData: NotificationOutput['comment'];
+      if (comment) {
+        commentData = {
+          id: comment.id,
+          body: comment.body,
+          createdAt: comment.createdAt instanceof Date
+            ? comment.createdAt.toISOString()
+            : String(comment.createdAt),
+        };
+      }
+
+      result.push({
+        id: n.id,
+        type: n.type,
+        readAt: n.readAt instanceof Date
+          ? n.readAt.toISOString()
+          : n.readAt ? String(n.readAt) : undefined,
+        createdAt: n.createdAt instanceof Date
+          ? n.createdAt.toISOString()
+          : String(n.createdAt),
+        actor: actor ? {
+          id: actor.id,
+          name: actor.name,
+          email: actor.email,
+        } : undefined,
+        issue: issueData,
+        comment: commentData,
+      });
+    }
+
+    // Sort by createdAt descending (most recent first)
+    result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return result;
   }

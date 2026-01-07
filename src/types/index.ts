@@ -237,3 +237,27 @@ export interface IssueWithCommentsOutput extends IssueOutput {
   attachments?: AttachmentOutput[];
   inlineImages?: InlineImageOutput[];
 }
+
+// ============================================================================
+// Notification/Inbox Types
+// ============================================================================
+
+export interface NotificationOutput {
+  id: string;
+  type: string;
+  readAt?: string;
+  createdAt: string;
+  actor?: { id: string; name: string; email?: string };
+  issue?: {
+    id: string;
+    identifier: string;
+    title: string;
+    state?: { id: string; name: string };
+    team?: { id: string; key: string; name: string };
+  };
+  comment?: {
+    id: string;
+    body: string;
+    createdAt: string;
+  };
+}
